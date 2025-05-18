@@ -1,7 +1,9 @@
 import Router, {RouterContext} from "koa-router";
 import bodyParser from "koa-bodyparser";
 import * as model from '../models/articles';
-// Since we are handling articles use a URI that begins with an appropriate path
+import {validateArticle} from '../controllers/validation';
+import { basicAuth } from '../controllers/auth'; // Import the basicAuth middleware
+
 const router = new Router({prefix: '/api/v1/articles'});
 
 
@@ -61,9 +63,12 @@ const deleteArticle = async (ctx: RouterContext, next: any) => {
    await next();
 }
 
+// Public routes
 router.get('/', getAll);
-router.post('/', bodyParser(), createArticle);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), updateArticle);
-router.del('/:id([0-9]{1,})', deleteArticle);
+
+// Protected routes (require authentication)
+router.post('/', basicAuth, bodyParser(), validateArticle, createArticle);
+router.put('/:id([0-9]{1,})', basicAuth, bodyParser(), validateArticle, updateArticle);
+router.del('/:id([0-9]{1,})', basicAuth, deleteArticle);
 export { router };
